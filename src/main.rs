@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 use std::env::{self, args};
+use std::fmt::format;
 use std::io::{self, stdin, BufRead, BufWriter, stdout, Write};
 use std::net::{SocketAddr, ToSocketAddrs, Ipv4Addr, IpAddr};
 use std::rc::Rc;
@@ -162,7 +163,7 @@ fn main() -> std::io::Result<()> {
         let history = history_thread;
         loop {
             let (datagram, address) = socket.receiver.read().unwrap().get_datagram();
-            history.write().unwrap().push(format!("{}\t{}", datagram, address));
+            history.write().unwrap().push(format!("{}\t\x1b[2;36m{}\x1b[0m", datagram, address));
             draw_history(&history.read().unwrap(), None).unwrap();
         }
     });
@@ -194,6 +195,9 @@ fn main() -> std::io::Result<()> {
                         }
                         message = Some(string);
                     },
+                    "help" | "h" | "helpme" => {
+                        message = Some(format!("/nick: [nickname] - Changes your nickname\n/exit - Quits the program\n/whoami - Prints port the host socket is bound to\n/list - Prints the ports the host socket will send its datagrams to\n/add: [address:port] or [address port] - Adds a new address to send all futures datagrams\n/help: Displays this message"))
+                    }
                     _ => (),
                 }
             },
